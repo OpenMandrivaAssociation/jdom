@@ -3,7 +3,7 @@
 
 Name:           jdom
 Version:        1.0
-Release:	%mkrel 4.3
+Release:	%mkrel 4.4
 Epoch:          0
 Summary:        Java alternative to DOM and SAX
 License:        Apache License-like

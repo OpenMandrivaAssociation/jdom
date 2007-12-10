@@ -3,7 +3,7 @@
 
 Name:           jdom
 Version:        1.0
-Release:	%mkrel 4.5
+Release:	%mkrel 5.0.1
 Epoch:          0
 Summary:        Java alternative to DOM and SAX
 License:        Apache License-like
@@ -92,16 +92,6 @@ cp -pr samples $RPM_BUILD_ROOT%{_datadir}/%{name}
 %{clean_gcjdb}
 %endif
 
-
-%post javadoc
-rm -f %{_javadocdir}/%{name}
-ln -s %{name}-%{version} %{_javadocdir}/%{name}
-
-%postun javadoc 
-if [ "$1" = "0" ]; then
-    rm -f %{_javadocdir}/%{name}
-fi
-
 %files
 %defattr(0644,root,root,0755)
 %doc CHANGES.txt COMMITTERS.txt LICENSE.txt README.txt TODO.txt
@@ -114,7 +104,7 @@ fi
 
 %files javadoc
 %defattr(0644,root,root,0755)
-%ghost %doc %{_javadocdir}/%{name}
+%doc %{_javadocdir}/%{name}
 %doc %{_javadocdir}/%{name}-%{version}
 
 %files demo

@@ -19,6 +19,7 @@ BuildRequires:  java-gcj-compat-devel
 %else
 BuildArch:      noarch
 %endif
+BuildRoot:      %{_tmppath}/%{name}-%{version}-%{release}-buildroot
 
 %description
 JDOM is, quite simply, a Java representation of an XML document. JDOM

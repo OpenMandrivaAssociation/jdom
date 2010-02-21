@@ -15,6 +15,7 @@ BuildRequires:  java-rpmbuild >= 0:1.5
 BuildRequires:  java-javadoc
 BuildRequires:	xalan-j2
 BuildRequires:  ant
+BuildRequires:	jaxen
 %if %{gcj_support}
 BuildRequires:  java-gcj-compat-devel
 %else

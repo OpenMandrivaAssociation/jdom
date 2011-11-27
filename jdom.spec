@@ -30,7 +30,7 @@
 
 Name:           jdom
 Version:        1.1.1
-Release:        5
+Release:        7
 Summary:        Java alternative to DOM and SAX
 License:        ASL 1.1
 URL:            http://www.jdom.org/

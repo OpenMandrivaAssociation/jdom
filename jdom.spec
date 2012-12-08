@@ -1,55 +1,28 @@
-# Copyright (c) 2000-2005, JPackage Project
-# All rights reserved.
-#
-# Redistribution and use in source and binary forms, with or without
-# modification, are permitted provided that the following conditions
-# are met:
-#
-# 1. Redistributions of source code must retain the above copyright
-#    notice, this list of conditions and the following disclaimer.
-# 2. Redistributions in binary form must reproduce the above copyright
-#    notice, this list of conditions and the following disclaimer in the
-#    documentation and/or other materials provided with the
-#    distribution.
-# 3. Neither the name of the JPackage Project nor the names of its
-#    contributors may be used to endorse or promote products derived
-#    from this software without specific prior written permission.
-#
-# THIS SOFTWARE IS PROVIDED BY THE COPYRIGHT HOLDERS AND CONTRIBUTORS
-# "AS IS" AND ANY EXPRESS OR IMPLIED WARRANTIES, INCLUDING, BUT NOT
-# LIMITED TO, THE IMPLIED WARRANTIES OF MERCHANTABILITY AND FITNESS FOR
-# A PARTICULAR PURPOSE ARE DISCLAIMED. IN NO EVENT SHALL THE COPYRIGHT
-# OWNER OR CONTRIBUTORS BE LIABLE FOR ANY DIRECT, INDIRECT, INCIDENTAL,
-# SPECIAL, EXEMPLARY, OR CONSEQUENTIAL DAMAGES (INCLUDING, BUT NOT
-# LIMITED TO, PROCUREMENT OF SUBSTITUTE GOODS OR SERVICES; LOSS OF USE,
-# DATA, OR PROFITS; OR BUSINESS INTERRUPTION) HOWEVER CAUSED AND ON ANY
-# THEORY OF LIABILITY, WHETHER IN CONTRACT, STRICT LIABILITY, OR TORT
-# (INCLUDING NEGLIGENCE OR OTHERWISE) ARISING IN ANY WAY OUT OF THE USE
-# OF THIS SOFTWARE, EVEN IF ADVISED OF THE POSSIBILITY OF SUCH DAMAGE.
-#
+%define gcj_support 0
 
 Name:           jdom
 Version:        1.1.1
-Release:        7
+Release:	%mkrel 4
+Epoch:          0
 Summary:        Java alternative to DOM and SAX
-License:        ASL 1.1
+License:        Apache License-like
 URL:            http://www.jdom.org/
 Group:          Development/Java
-Source0:        http://jdom.org/dist/binary/jdom-%{version}.tar.gz
-Source1:        http://repo1.maven.org/maven2/org/jdom/jdom/1.1/jdom-1.1.pom
+Source0:        http://jdom.org/dist/binary/%{name}-%{version}.tar.gz
 Patch0:         %{name}-crosslink.patch
 Patch1:         %{name}-1.0-OSGiManifest.patch
-# Change version number and remove dependencies that don't have POMs yet
-Patch2:         %{name}-cleanup-pom.patch
-Requires:       xalan-j2 >= 0:2.2.0
-BuildRequires:  ant >= 0:1.6
-BuildRequires:  xalan-j2 >= 0:2.2.0
-BuildRequires:  jpackage-utils >= 0:1.6
+BuildRequires:  java-rpmbuild >= 0:1.5
 BuildRequires:  java-javadoc
+BuildRequires:	xalan-j2
+BuildRequires:  ant
+BuildRequires:	jaxen
+%if %{gcj_support}
+BuildRequires:  java-gcj-compat-devel
+%else
 BuildArch:      noarch
-Requires(post): jpackage-utils
-Requires(postun): jpackage-utils
-Requires:       jpackage-utils
+%endif
+Requires:	xalan-j2
+BuildRoot:      %{_tmppath}/%{name}-%{version}-%{release}-buildroot
 
 %description
 JDOM is, quite simply, a Java representation of an XML document. JDOM
@@ -62,7 +35,6 @@ and SAX.
 %package javadoc
 Summary:        Javadoc for %{name}
 Group:          Development/Java
-Requires:       jpackage-utils
 
 %description javadoc
 Javadoc for %{name}.
@@ -70,7 +42,7 @@ Javadoc for %{name}.
 %package demo
 Summary:        Demos for %{name}
 Group:          Development/Java
-Requires:       %{name} = %{version}-%{release}
+Requires:       %{name} = %{epoch}:%{version}-%{release}
 
 %description demo
 Demonstrations and samples for %{name}.
@@ -78,66 +50,154 @@ Demonstrations and samples for %{name}.
 
 %prep
 %setup -q -n %{name}
-cp %{SOURCE1} .
-%patch0 -p0
+%patch0 -p1
 %patch1 -p0
-%patch2 -p0
 # remove all binary libs
 find . -name "*.jar" -exec rm -f {} \;
 find . -name "*.class" -exec rm -f {} \;
 
+
 %build
-export CLASSPATH=$(build-classpath xalan-j2)
+export CLASSPATH=$(build-classpath xml-commons-apis xalan-j2 jaxen)
 sed -e 's|<property name="build.compiler".*||' build.xml > tempf; cp tempf build.xml; rm tempf
-ant -Dj2se.apidoc=%{_javadocdir}/java package javadoc-link
+%ant -Dj2se.apidoc=%{_javadocdir}/java package javadoc-link
 
 
 %install
+rm -rf %{buildroot}
+
 # jars
-mkdir -p $RPM_BUILD_ROOT%{_javadir}
-cp -p build/%{name}.jar $RPM_BUILD_ROOT%{_javadir}/%{name}.jar
+mkdir -p %{buildroot}%{_javadir}
+cp -p build/%{name}.jar %{buildroot}%{_javadir}/%{name}-%{version}.jar
+(cd %{buildroot}%{_javadir} && for jar in *-%{version}.jar; do ln -sf ${jar} `echo $jar| sed "s|-%{version}||g"`; done)
 
 # javadoc
-mkdir -p $RPM_BUILD_ROOT%{_javadocdir}/%{name}
-cp -pr build/apidocs/* $RPM_BUILD_ROOT%{_javadocdir}/%{name}
+mkdir -p %{buildroot}%{_javadocdir}/%{name}-%{version}
+cp -pr build/apidocs/* %{buildroot}%{_javadocdir}/%{name}-%{version}
+ln -s %{name}-%{version} %{buildroot}%{_javadocdir}/%{name}
 
 # demo
-mkdir -p $RPM_BUILD_ROOT%{_datadir}/%{name}
-cp -pr samples $RPM_BUILD_ROOT%{_datadir}/%{name}
+mkdir -p %{buildroot}%{_datadir}/%{name}
+cp -pr samples %{buildroot}%{_datadir}/%{name}
 
-# maven stuff
-mkdir -p $RPM_BUILD_ROOT%{_mavenpomdir}
-cp jdom-1.1.pom $RPM_BUILD_ROOT%{_mavenpomdir}/JPP-jdom.pom
-%add_to_maven_depmap org.jdom %{name} %{version} JPP %{name}
+%{gcj_compile}
 
-# compatibility depmap
-%add_to_maven_depmap %{name} %{name} %{version} JPP %{name}
+%clean
+%{__rm} -rf %{buildroot}
 
+%if %{gcj_support}
 %post
-%update_maven_depmap
+%{update_gcjdb}
 
 %postun
-%update_maven_depmap
-
-%pre javadoc
-# workaround for rpm bug, can be removed in F-17
-[ $1 -gt 1 ] && [ -L %{_javadocdir}/%{name} ] && \
-rm -rf $(readlink -f %{_javadocdir}/%{name}) %{_javadocdir}/%{name} || :
+%{clean_gcjdb}
+%endif
 
 %files
-%defattr(-,root,root,-)
+%defattr(0644,root,root,0755)
 %doc CHANGES.txt COMMITTERS.txt LICENSE.txt README.txt TODO.txt
-%{_javadir}/%{name}.jar
-%{_mavendepmapfragdir}/%{name}
-%{_mavenpomdir}/*.pom
+%{_javadir}/%{name}*.jar
+%{gcj_files}
 
 %files javadoc
-%defattr(-,root,root,-)
-%{_javadocdir}/%{name}
-%doc LICENSE.txt
+%defattr(0644,root,root,0755)
+%doc %{_javadocdir}/%{name}
+%doc %{_javadocdir}/%{name}-%{version}
 
 %files demo
-%defattr(-,root,root,-)
+%defattr(0644,root,root,0755)
 %{_datadir}/%{name}
-%doc LICENSE.txt
+
+
+
+
+%changelog
+* Wed May 04 2011 Oden Eriksson <oeriksson@mandriva.com> 0:1.1.1-3mdv2011.0
++ Revision: 665823
+- mass rebuild
+
+* Fri Dec 03 2010 Oden Eriksson <oeriksson@mandriva.com> 0:1.1.1-2mdv2011.0
++ Revision: 606079
+- rebuild
+
+* Sun Feb 21 2010 Tomasz Pawel Gajc <tpg@mandriva.org> 0:1.1.1-1mdv2010.1
++ Revision: 508889
+- update to new version 1.1.1
+- rediff patch0
+- spec file clean
+- add missing buildrequires on xalan-j and jaxen
+
+* Wed Sep 02 2009 Christophe Fergeau <cfergeau@mandriva.com> 0:1.0-5.5.3mdv2010.0
++ Revision: 425458
+- rebuild
+
+* Sat Mar 07 2009 Antoine Ginies <aginies@mandriva.com> 0:1.0-5.5.2mdv2009.1
++ Revision: 351302
+- rebuild
+
+* Sun Aug 10 2008 Alexander Kurtakov <akurtakov@mandriva.org> 0:1.0-5.5.1mdv2009.0
++ Revision: 270173
+- update OSGi manifest
+
+* Fri Dec 21 2007 Olivier Blin <oblin@mandriva.com> 0:1.0-5.0.2mdv2009.0
++ Revision: 136503
+- restore BuildRoot
+
+  + Thierry Vignaud <tv@mandriva.org>
+    - kill re-definition of %%buildroot on Pixel's request
+
+* Sun Dec 16 2007 Anssi Hannula <anssi@mandriva.org> 0:1.0-5.0.2mdv2008.1
++ Revision: 120938
+- buildrequire java-rpmbuild, i.e. build with icedtea on x86(_64)
+
+* Mon Dec 10 2007 Alexander Kurtakov <akurtakov@mandriva.org> 0:1.0-5.0.1mdv2008.1
++ Revision: 116965
+- remove javadoc post/postun
+
+* Sat Sep 15 2007 Anssi Hannula <anssi@mandriva.org> 0:1.0-4.5mdv2008.0
++ Revision: 87431
+- rebuild to filter out autorequires of GCJ AOT objects
+- remove unnecessary Requires(post) on java-gcj-compat
+
+* Sat Sep 08 2007 Pascal Terjan <pterjan@mandriva.org> 0:1.0-4.4mdv2008.0
++ Revision: 82693
+- update to new version
+
+
+* Thu Mar 15 2007 Christiaan Welvaart <spturtle@mandriva.org> 1.0-4.3mdv2007.1
++ Revision: 144241
+- rebuild for 2007.1
+- Import jdom
+
+* Thu Aug 10 2006 David Walluck <walluck@mandriva.org> 0:1.0-4.1mdv2007.0
+- add javadoc %%postun
+
+* Sun Jul 23 2006 David Walluck <walluck@mandriva.org> 0:1.0-3.1mdv2007.0
+- fix BuildRequires
+- drop xalan-j2 (Build)Requires
+
+* Sun Jun 04 2006 David Walluck <walluck@mandriva.org> 0:1.0-1.2.2mdv2007.0
+- rebuild for libgcj.so.7
+
+* Mon Feb 27 2006 David Walluck <walluck@mandriva.org> 0:1.0-1.2.1mdk
+- add native libraries
+
+* Sat May 28 2005 David Walluck <walluck@mandriva.org> 0:1.0-1.1mdk
+- release
+
+* Wed Oct 20 2004 Fernando Nasser <fnasser@redhat.com> - 0:1.0-1jpp_1rh
+- First Red Hat build
+
+* Sun Sep 19 2004 Ralph Apel <r.apel at r-apel.de> - 0:1.0-1jpp
+- Upgrade to 1.0 final
+
+* Wed Sep 08 2004 Ralph Apel <r.apel at r-apel.de> - 0:1.0-0.rc1.1jpp
+- Upgrade to 1.0-rc1
+
+* Tue Aug 24 2004 Randy Watler <rwatler at finali.com> - 0:1.0-0.b9.4jpp
+- Rebuild with ant-1.6.2
+
+* Tue Jul 20 2004 Ville Skyttä <ville.skytta at iki.fi> - 0:1.0-0.b9.3jpp
+- Add non-versioned javadoc dir symlink.
+- Crosslink with local J2SE javadocs.
 

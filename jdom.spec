@@ -3,7 +3,7 @@
 Summary:	Java alternative to DOM and SAX
 Name:		jdom
 Version:	1.1.1
-Release:	6
+Release:	7
 License:	Apache License-like
 Url:		http://www.jdom.org/
 Group:		Development/Java

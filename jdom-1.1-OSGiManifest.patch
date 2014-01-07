@@ -8,12 +8,12 @@ diff -up ./package/META-INF/MANIFEST.MF.osgimanifest ./package/META-INF/MANIFEST
 +Bundle-ManifestVersion: 2
 +Bundle-Name: %Bundle-Name.0
 +Bundle-Localization: plugin
-+Bundle-Version: 1.0.0.v200806100616
++Bundle-Version: 1.1.2
 +Bundle-Vendor: %Bundle-Vendor.0
-+Export-Package: org.jdom;version="1.0.0",org.jdom.adapters;version="1.
-+ 0.0",org.jdom.filter;version="1.0.0",org.jdom.input;version="1.0.0",o
-+ rg.jdom.output;version="1.0.0",org.jdom.transform;version="1.0.0",org
-+ .jdom.xpath;version="1.0.0"
++Export-Package: org.jdom;version="1.1.2",org.jdom.adapters;version="1.
++ 1.2",org.jdom.filter;version="1.1.2",org.jdom.input;version="1.1.2",o
++ rg.jdom.output;version="1.1.2",org.jdom.transform;version="1.1.2",org
++ .jdom.xpath;version="1.1.2"
 +Require-Bundle: org.apache.xerces;resolution:=optional
  
  Name: org/jdom/

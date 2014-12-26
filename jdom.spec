@@ -31,12 +31,12 @@
 
 Name:           jdom
 Version:        1.1.3
-Release:        5.1%{?dist}
+Release:        7.1
 Epoch:          0
 Summary:        Java alternative to DOM and SAX
 License:        ASL 1.1
 URL:            http://www.jdom.org/
-
+Group:		Development/Java
 Source0:        http://jdom.org/dist/binary/archive/jdom-%{version}.tar.gz
 Source1:        http://repo1.maven.org/maven2/org/jdom/jdom/%{version}/jdom-%{version}.pom
 Patch0:         %{name}-crosslink.patch
@@ -109,11 +109,8 @@ mkdir -p $RPM_BUILD_ROOT%{_mavenpomdir}
 cp %{SOURCE1} $RPM_BUILD_ROOT%{_mavenpomdir}/JPP-jdom.pom
 %add_maven_depmap JPP-jdom.pom %{name}.jar -a "jdom:jdom"
 
-%files
+%files -f .mfiles
 %doc CHANGES.txt COMMITTERS.txt LICENSE.txt README.txt TODO.txt
-%{_javadir}/%{name}.jar
-%{_mavendepmapfragdir}/%{name}
-%{_mavenpomdir}/*.pom
 
 %files javadoc
 %{_javadocdir}/%{name}

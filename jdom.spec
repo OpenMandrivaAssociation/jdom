@@ -31,7 +31,7 @@
 
 Name:           jdom
 Version:        1.1.3
-Release:        7.2
+Release:        7.3
 Epoch:          0
 Summary:        Java alternative to DOM and SAX
 License:        ASL 1.1
